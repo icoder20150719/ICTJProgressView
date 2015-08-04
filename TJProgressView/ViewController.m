@@ -29,7 +29,7 @@
 }
 
 - (IBAction)btnClick:(UIButton *)sender {
-    _progressView.progress =0.67;
+    _progressView.progress =0.89;
 }
 
 @end

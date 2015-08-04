@@ -17,7 +17,9 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 {
     UIView *progressView; //进度条view
     UILabel *lblPercent;  //显示百分比的label
-
+    CADisplayLink *disPlayLink; //定时器
+    CGFloat progressValue;//自增变量用来和设置的进度进行比较
+    CGFloat countDown;//用来自增计数
 }
 @end
 @implementation ICTJProgressView
@@ -69,7 +71,10 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
     /**重置进度条和label的frame*/
      progressView.frame = CGRectMake(0, self.bounds.origin.y+self.bounds.size.height, self.bounds.size.width, 0);
      lblPercent.frame = CGRectMake(0, self.bounds.origin.y+self.bounds.size.height-kLabelHeight, self.bounds.size.width, kLabelHeight);
-    
+    /**创建定时器对象*/
+    disPlayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(startAnimationWithLabel)];
+    [disPlayLink addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSRunLoopCommonModes];
+
     [UIView animateWithDuration:0.5 delay:0.1 options:UIViewAnimationOptionCurveEaseOut animations:^{
         /**设置进度条的高度*/
         CGRect newRect = progressView.frame;
@@ -85,18 +90,35 @@ blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
        
        
     }];
-    /**获取label百分比以及设置富文本颜色和字体大小*/
-    NSString *result = [NSString stringWithFormat:@"%ld%%",(long)(_progress*100)];
+  
+    
+}
+- (void)startAnimationWithLabel
+{
+    progressValue += 0.01;
+    countDown += 0.00;
+    /**获取label百分比*/
+    NSString *result = [NSString stringWithFormat:@"%ld%%",(long)(progressValue*100)];
+    /**如果自增变量大于设置的进度值，则把自增变量的值设置为自增计数变量的值。此外把自增计数变量置为初始化以及把定时器禁用*/
+    if (progressValue>_progress)
+    {
+        
+        progressValue = countDown;
+        countDown = 0.00f;
+        [disPlayLink invalidate];
+        disPlayLink = nil;
+    }
+    
+    /**设置富文本颜色和字体大小*/
     NSMutableAttributedString *attributeString = [[NSMutableAttributedString alloc]initWithString:result];
-    NSDictionary *dic_Attribute =
-                        @{
-                          NSForegroundColorAttributeName :
-                              [UIColor colorWithRed:0.261
-                                              green:0.223
-                                               blue:0.284 alpha:1.000],
-                          NSFontAttributeName :
-                              [UIFont systemFontOfSize:8.f]
-                          };
+    NSDictionary *dic_Attribute = @{
+                                    NSForegroundColorAttributeName :
+                                        [UIColor colorWithRed:0.261
+                                                        green:0.223
+                                                         blue:0.284 alpha:1.000],
+                                    NSFontAttributeName :
+                                        [UIFont systemFontOfSize:8.f]
+                                    };
     [attributeString addAttributes:dic_Attribute range:NSMakeRange(result.length-1, 1)];
     lblPercent.attributedText = attributeString;
     
